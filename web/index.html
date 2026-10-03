@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="author" content="MarkSkecher">
+<meta name="description" content="MarkForge · 专业级 Markdown 在线编辑器 by MarkSkecher">
+<title>MarkForge · Markdown 编辑器</title>
+<link rel="stylesheet" href="styles.css">
+<script>
+  (function () {
+    try {
+      var mode = localStorage.getItem('mf-theme') || 'system';
+      var dark = mode === 'dark' ||
+        (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      var accent = localStorage.getItem('mf-accent');
+      if (accent) document.documentElement.style.setProperty('--accent', accent);
+    } catch (e) {}
+  })();
+</script>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══════════ 菜单栏 ═══════════ -->
+  <header class="menubar">
+    <div class="brand">
+      <div class="brand-mark">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 17V7l8 9 8-9v10"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">MarkForge</span>
+        <span class="brand-author">by MarkSkecher</span>
+      </div>
+    </div>
+
+    <nav class="menu" id="menu">
+      <div class="menu-item">
+        <button class="menu-btn">文件</button>
+        <div class="dropdown">
+          <button class="dd-item" data-action="new"><span>新建文档</span><kbd>Ctrl N</kbd></button>
+          <button class="dd-item" data-action="open"><span>打开 Markdown…</span><kbd>Ctrl O</kbd></button>
+          <div class="dd-sep"></div>
+          <button class="dd-item" data-action="save-md"><span>保存为 .md</span><kbd>Ctrl S</kbd></button>
+          <button class="dd-item" data-action="save-html"><span>导出 HTML</span><kbd>Ctrl ⇧ S</kbd></button>
+          <button class="dd-item" data-action="print"><span>打印 / PDF</span><kbd>Ctrl P</kbd></button>
+          <div class="dd-sep"></div>
+          <button class="dd-item" data-action="clear"><span>清空内容</span></button>
+        </div>
+      </div>
+      <div class="menu-item">
+        <button class="menu-btn">编辑</button>
+        <div class="dropdown">
+          <button class="dd-item" data-action="undo"><span>撤销</span><kbd>Ctrl Z</kbd></button>
+          <button class="dd-item" data-action="redo"><span>重做</span><kbd>Ctrl Y</kbd></button>
+          <div class="dd-sep"></div>
+          <button class="dd-item" data-action="selectall"><span>全选</span><kbd>Ctrl A</kbd></button>
+          <button class="dd-item" data-action="copyall"><span>复制全文</span></button>
+          <div class="dd-sep"></div>
+          <button class="dd-item" data-action="indent"><span>增加缩进</span><kbd>Tab</kbd></button>
+          <button class="dd-item" data-action="outdent"><span>减少缩进</span><kbd>⇧ Tab</kbd></button>
+        </div>
+      </div>
+      <div class="menu-item">
+        <button class="menu-btn">插入</button>
+        <div class="dropdown">
+          <button class="dd-item" data-cmd="link"><span>链接</span><kbd>Ctrl K</kbd></button>
+          <button class="dd-item" data-cmd="image"><span>图片</span></button>
+          <button class="dd-item" data-cmd="codeblock"><span>代码块</span></button>
+          <button class="dd-item" data-cmd="table"><span>表格</span></button>
+          <div class="dd-sep"></div>
+          <button class="dd-item" data-cmd="hr"><span>分隔线</span></button>
+          <button class="dd-item" data-cmd="quote"><span>引用</span></button>
+          <button class="dd-item" data-cmd="task"><span>任务列表</span></button>
+          <button class="dd-item" data-cmd="details"><span>折叠块</span></button>
+          <div class="dd-sep"></div>
+          <button class="dd-item" data-action="datetime"><span>插入当前日期时间</span></button>
+        </div>
+      </div>
+      <div class="menu-item">
+        <button class="menu-btn">视图</button>
+        <div class="dropdown">
+          <button class="dd-item" data-action="view-editor"><span>仅编辑器</span><kbd>Ctrl 1</kbd></button>
+          <button class="dd-item" data-action="view-split"><span>分栏</span><kbd>Ctrl 2</kbd></button>
+          <button class="dd-item" data-action="view-preview"><span>仅预览</span><kbd>Ctrl 3</kbd></button>
+          <div class="dd-sep"></div>
+          <button class="dd-item" data-action="toggle-left"><span>左侧面板</span><kbd>Ctrl B</kbd></button>
+          <button class="dd-item" data-action="toggle-right"><span>右侧面板</span><kbd>Ctrl ⇧ B</kbd></button>
+          <div class="dd-sep"></div>
+          <button class="dd-item" data-action="fullscreen"><span>全屏</span><kbd>F11</kbd></button>
+        </div>
+      </div>
+      <div class="menu-item">
+        <button class="menu-btn">帮助</button>
+        <div class="dropdown">
+          <button class="dd-item" data-action="syntax"><span>Markdown 语法速查</span></button>
+          <button class="dd-item" data-action="shortcuts"><span>快捷键</span></button>
+          <div class="dd-sep"></div>
+          <button class="dd-item" data-action="about"><span>关于 MarkForge</span></button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="menubar-right">
+      <button class="icon-btn" id="btnSearch" title="命令面板 (Ctrl+P)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="9" r="5.5"/><path d="M13.2 13.2L17 17"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="btnTheme" title="切换主题">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <circle cx="10" cy="10" r="3.6"/>
+          <path d="M10 1.8v2M10 16.2v2M18.2 10h-2M3.8 10h-2M15.8 4.2l-1.4 1.4M5.6 14.4l-1.4 1.4M15.8 15.8l-1.4-1.4M5.6 5.6L4.2 4.2"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="btnAbout" title="关于">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="7.6"/><path d="M10 14.5v-4.5M10 6.6v.1"/>
+        </svg>
+      </button>
+      <a class="icon-btn" id="btnBili" href="https://space.bilibili.com/3546632454932721" target="_blank" rel="noopener noreferrer" title="在 Bilibili 关注作者" aria-label="Bilibili">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4.5 2.6l2 2.6M15.5 2.6l-2 2.6"/>
+          <rect x="2.2" y="5.2" width="15.6" height="12" rx="3.2"/>
+          <path d="M7.3 9v1.8M12.7 9v1.8"/>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- ═══════════ 工具栏 ═══════════ -->
+  <div class="toolbar" id="toolbar">
+    <button class="tbtn" data-action="undo" title="撤销 (Ctrl+Z)">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5.5L3.5 9.5l4 4"/><path d="M3.5 9.5h8a5 5 0 0 1 0 10h-3"/></svg>
+    </button>
+    <button class="tbtn" data-action="redo" title="重做 (Ctrl+Y)">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 5.5l4 4-4 4"/><path d="M16.5 9.5h-8a5 5 0 0 0 0 10h3"/></svg>
+    </button>
+    <div class="tsep"></div>
+    <button class="tbtn" data-cmd="bold" title="加粗 (Ctrl+B)">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h4.6a3.2 3.2 0 0 1 0 6.4H6z"/><path d="M6 10.4h5.4a3.3 3.3 0 0 1 0 6.6H6z"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="italic" title="斜体 (Ctrl+I)">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 4h-4M12.5 16h-4M12 4l-4 12"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="strike" title="删除线">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10h13"/><path d="M12.8 6.6A3.6 3.6 0 0 0 9.7 4.8C7.6 4.8 6.3 5.9 6.3 7.4c0 1 .7 1.7 2.1 2.3"/><path d="M7.4 13.3a3.8 3.8 0 0 0 3.3 2c2.2 0 3.6-1.1 3.6-2.8 0-.4-.1-.8-.3-1.1"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="mark" title="高亮">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5l5.5 5.5-6 6H4.5v-6z"/><path d="M3.5 17.5h13"/></svg>
+    </button>
+    <div class="tsep"></div>
+    <button class="tbtn" data-cmd="h1" title="一级标题">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5v10M10 5v10M3.5 10h6.5M13.5 9l2.2-1.2V15"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="h2" title="二级标题">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5v10M10 5v10M3.5 10h6.5"/><path d="M13 8.6c0-1.4 2.8-1.7 2.8.4 0 1.6-2.9 3.6-2.9 5.9h3"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="h3" title="三级标题">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 5v10M10 5v10M3.5 10h6.5"/><path d="M13.2 8.2h3l-2 3.2c1.6 0 2.4.9 2.4 2.1 0 1.2-1 2-2.4 2-1 0-1.7-.4-2.1-1"/></svg>
+    </button>
+    <div class="tsep"></div>
+    <button class="tbtn" data-cmd="quote" title="引用">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5v9"/><path d="M8 6.5h8M8 10h8M8 13.5h5"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="ul" title="无序列表">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h8.5M8 10h8.5M8 14h8.5"/><circle cx="4.3" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.3" cy="10" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.3" cy="14" r="1.1" fill="currentColor" stroke="none"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="ol" title="有序列表">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h8.5M8 10h8.5M8 14h8.5"/><path d="M3.4 4.4l1.1-.7V8M2.9 10.4c0-.9 1.7-1.1 1.7.2 0 1-1.7 2.1-1.7 3.4h1.9"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="task" title="任务列表">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="4.4" width="7" height="7" rx="2"/><path d="M4.4 8l1.4 1.4L8.2 6.6"/><path d="M12.5 6.5h5M12.5 10h5M12.5 14h5M3 14.5h6"/></svg>
+    </button>
+    <div class="tsep"></div>
+    <button class="tbtn" data-cmd="code" title="行内代码">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.2 6L3.2 10l4 4M12.8 6l4 4-4 4"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="codeblock" title="代码块">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="3.6" width="14.8" height="12.8" rx="2.4"/><path d="M7.6 8L5.6 10l2 2M12.4 8l2 2-2 2"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="link" title="链接 (Ctrl+K)">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 11.6a3.1 3.1 0 0 0 4.4 0l2.4-2.4a3.1 3.1 0 0 0-4.4-4.4L9.6 6"/><path d="M11.6 8.4a3.1 3.1 0 0 0-4.4 0l-2.4 2.4a3.1 3.1 0 0 0 4.4 4.4l1.2-1.2"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="image" title="图片">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="4" width="14.8" height="12" rx="2.4"/><circle cx="7.3" cy="8.3" r="1.4"/><path d="M3.4 14.6l4.2-4.2 2.8 2.8 2.6-2.6 3.6 3.6"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="table" title="表格">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="4" width="14.8" height="12" rx="2.2"/><path d="M2.6 8.4h14.8M2.6 12.2h14.8M8.2 4v12"/></svg>
+    </button>
+    <button class="tbtn" data-cmd="hr" title="分隔线">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2.8 10h14.4"/><circle cx="5" cy="10" r=".8" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r=".8" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r=".8" fill="currentColor" stroke="none"/></svg>
+    </button>
+    <div class="tsep"></div>
+    <span class="tlabel" id="tbHint">就绪</span>
+  </div>
+
+  <!-- ═══════════ 工作区 ═══════════ -->
+  <div class="workspace" id="workspace" data-view="split">
+
+    <aside class="sidebar left" id="leftPanel">
+      <div class="panel-section">
+        <div class="panel-title">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 4v12M4 10h12"/></svg>
+          插入工具
+        </div>
+        <div class="tool-grid" id="toolGrid">
+          <button class="tool" data-cmd="bold" title="加粗"><svg viewBox="0 0 20 20"><path d="M6 4h4.6a3.2 3.2 0 0 1 0 6.4H6z"/><path d="M6 10.4h5.4a3.3 3.3 0 0 1 0 6.6H6z"/></svg></button>
+          <button class="tool" data-cmd="italic" title="斜体"><svg viewBox="0 0 20 20"><path d="M11.5 4h-4M12.5 16h-4M12 4l-4 12"/></svg></button>
+          <button class="tool" data-cmd="strike" title="删除线"><svg viewBox="0 0 20 20"><path d="M3.5 10h13"/><path d="M12.8 6.6A3.6 3.6 0 0 0 9.7 4.8C7.6 4.8 6.3 5.9 6.3 7.4c0 1 .7 1.7 2.1 2.3"/><path d="M7.4 13.3a3.8 3.8 0 0 0 3.3 2c2.2 0 3.6-1.1 3.6-2.8 0-.4-.1-.8-.3-1.1"/></svg></button>
+          <button class="tool" data-cmd="mark" title="高亮"><svg viewBox="0 0 20 20"><path d="M11 3.5l5.5 5.5-6 6H4.5v-6z"/><path d="M3.5 17.5h13"/></svg></button>
+          <button class="tool" data-cmd="h1" title="标题1"><svg viewBox="0 0 20 20"><path d="M3.5 5v10M10 5v10M3.5 10h6.5M13.5 9l2.2-1.2V15"/></svg></button>
+          <button class="tool" data-cmd="h2" title="标题2"><svg viewBox="0 0 20 20"><path d="M3.5 5v10M10 5v10M3.5 10h6.5"/><path d="M13 8.6c0-1.4 2.8-1.7 2.8.4 0 1.6-2.9 3.6-2.9 5.9h3"/></svg></button>
+          <button class="tool" data-cmd="h3" title="标题3"><svg viewBox="0 0 20 20"><path d="M3.5 5v10M10 5v10M3.5 10h6.5"/><path d="M13.2 8.2h3l-2 3.2c1.6 0 2.4.9 2.4 2.1 0 1.2-1 2-2.4 2-1 0-1.7-.4-2.1-1"/></svg></button>
+          <button class="tool" data-cmd="quote" title="引用"><svg viewBox="0 0 20 20"><path d="M4.5 5.5v9"/><path d="M8 6.5h8M8 10h8M8 13.5h5"/></svg></button>
+          <button class="tool" data-cmd="ul" title="无序列表"><svg viewBox="0 0 20 20"><path d="M8 6h8.5M8 10h8.5M8 14h8.5"/><circle cx="4.3" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.3" cy="10" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.3" cy="14" r="1.1" fill="currentColor" stroke="none"/></svg></button>
+          <button class="tool" data-cmd="ol" title="有序列表"><svg viewBox="0 0 20 20"><path d="M8 6h8.5M8 10h8.5M8 14h8.5"/><path d="M3.4 4.4l1.1-.7V8M2.9 10.4c0-.9 1.7-1.1 1.7.2 0 1-1.7 2.1-1.7 3.4h1.9"/></svg></button>
+          <button class="tool" data-cmd="task" title="任务列表"><svg viewBox="0 0 20 20"><rect x="2.6" y="4.4" width="7" height="7" rx="2"/><path d="M4.4 8l1.4 1.4L8.2 6.6"/><path d="M12.5 6.5h5M12.5 10h5M12.5 14h5M3 14.5h6"/></svg></button>
+          <button class="tool" data-cmd="code" title="行内代码"><svg viewBox="0 0 20 20"><path d="M7.2 6L3.2 10l4 4M12.8 6l4 4-4 4"/></svg></button>
+          <button class="tool" data-cmd="codeblock" title="代码块"><svg viewBox="0 0 20 20"><rect x="2.6" y="3.6" width="14.8" height="12.8" rx="2.4"/><path d="M7.6 8L5.6 10l2 2M12.4 8l2 2-2 2"/></svg></button>
+          <button class="tool" data-cmd="link" title="链接"><svg viewBox="0 0 20 20"><path d="M8.4 11.6a3.1 3.1 0 0 0 4.4 0l2.4-2.4a3.1 3.1 0 0 0-4.4-4.4L9.6 6"/><path d="M11.6 8.4a3.1 3.1 0 0 0-4.4 0l-2.4 2.4a3.1 3.1 0 0 0 4.4 4.4l1.2-1.2"/></svg></button>
+          <button class="tool" data-cmd="image" title="图片"><svg viewBox="0 0 20 20"><rect x="2.6" y="4" width="14.8" height="12" rx="2.4"/><circle cx="7.3" cy="8.3" r="1.4"/><path d="M3.4 14.6l4.2-4.2 2.8 2.8 2.6-2.6 3.6 3.6"/></svg></button>
+          <button class="tool" data-cmd="table" title="表格"><svg viewBox="0 0 20 20"><rect x="2.6" y="4" width="14.8" height="12" rx="2.2"/><path d="M2.6 8.4h14.8M2.6 12.2h14.8M8.2 4v12"/></svg></button>
+          <button class="tool" data-cmd="hr" title="分隔线"><svg viewBox="0 0 20 20"><path d="M2.8 10h14.4"/><circle cx="5" cy="10" r=".8" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r=".8" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r=".8" fill="currentColor" stroke="none"/></svg></button>
+          <button class="tool" data-cmd="details" title="折叠块"><svg viewBox="0 0 20 20"><rect x="2.6" y="4" width="14.8" height="12" rx="2.2"/><path d="M2.6 8h14.8M8 11l2 2 2-2"/></svg></button>
+          <button class="tool" data-cmd="datetime" title="日期时间"><svg viewBox="0 0 20 20"><rect x="2.6" y="4.4" width="14.8" height="12.2" rx="2.2"/><path d="M2.6 8.4h14.8M6.5 3v3M13.5 3v3"/></svg></button>
+        </div>
+      </div>
+
+      <div class="panel-section grow">
+        <div class="panel-title">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5h14M3 10h10M3 15h7"/></svg>
+          文档大纲
+        </div>
+        <div class="outline" id="outline"></div>
+      </div>
+    </aside>
+
+    <section class="main">
+      <div class="tabbar">
+        <div class="tab" id="tab">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" style="opacity:.55">
+            <path d="M11.5 2.5H5.5a1.5 1.5 0 0 0-1.5 1.5v12a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5V7z"/>
+            <path d="M11.5 2.5V7H16"/>
+          </svg>
+          <span id="tabName">未命名.md</span>
+          <span class="dot"></span>
+        </div>
+        <div class="tab-actions">
+          <button class="icon-btn" data-action="save-md" title="保存为 .md">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 2.8v9.4M6.4 8.6l3.6 3.6 3.6-3.6M3.4 15.4v1.2h13.2v-1.2"/>
+            </svg>
+          </button>
+          <button class="icon-btn" data-action="copyall" title="复制全文">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="7" y="7" width="9.4" height="9.4" rx="2"/>
+              <path d="M12.6 7V5.4a2 2 0 0 0-2-2H5.4a2 2 0 0 0-2 2v5.2a2 2 0 0 0 2 2H7"/>
+            </svg>
+          </button>
+          <button class="icon-btn" data-action="toggle-right" title="属性面板">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2.6" y="4" width="14.8" height="12" rx="2.2"/><path d="M12.4 4v12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="split" id="split">
+        <div class="pane editor-pane" id="editorPane">
+          <div class="pane-head">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h10M5 10h10M5 15.5h6"/></svg>
+            Markdown 源码
+          </div>
+          <div class="editor-wrap">
+            <div class="gutter" id="gutter"></div>
+            <textarea id="editor" spellcheck="false" placeholder="开始书写你的 Markdown…"></textarea>
+          </div>
+        </div>
+
+        <div class="divider" id="divider" title="拖拽调整比例">
+          <div class="divider-handle"></div>
+        </div>
+
+        <div class="pane preview-pane" id="previewPane">
+          <div class="pane-head">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 10S4.8 4.5 10 4.5 18.2 10 18.2 10 15.2 15.5 10 15.5 1.8 10 1.8 10z"/><circle cx="10" cy="10" r="2.6"/></svg>
+            实时预览
+          </div>
+          <div class="preview" id="preview"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="sidebar right" id="rightPanel">
+      <div class="panel-section">
+        <div class="panel-title">文档统计</div>
+        <div class="stat-grid">
+          <div class="stat-cell"><span class="stat-v" id="stWords">0</span><span class="stat-k">字数</span></div>
+          <div class="stat-cell"><span class="stat-v" id="stChars">0</span><span class="stat-k">字符</span></div>
+          <div class="stat-cell"><span class="stat-v" id="stLines">0</span><span class="stat-k">行数</span></div>
+          <div class="stat-cell"><span class="stat-v" id="stHeads">0</span><span class="stat-k">标题</span></div>
+        </div>
+        <div class="stat-row"><span class="k">段落数</span><span class="v" id="stParas">0</span></div>
+        <div class="stat-row"><span class="k">阅读时长</span><span class="v" id="stRead">1 分钟</span></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">外观主题</div>
+        <div class="segmented" id="themeSeg">
+          <button data-theme-opt="light">浅色</button>
+          <button data-theme-opt="dark">深色</button>
+          <button data-theme-opt="system">系统</button>
+        </div>
+        <div class="panel-title" style="margin-top:14px">强调色</div>
+        <div class="accent-swatches" id="accentSwatches">
+          <button class="swatch" data-accent="#4b7bff" style="--sw:#4b7bff"></button>
+          <button class="swatch" data-accent="#8b5cf6" style="--sw:#8b5cf6"></button>
+          <button class="swatch" data-accent="#ec4899" style="--sw:#ec4899"></button>
+          <button class="swatch" data-accent="#f97316" style="--sw:#f97316"></button>
+          <button class="swatch" data-accent="#10b981" style="--sw:#10b981"></button>
+          <button class="swatch" data-accent="#06b6d4" style="--sw:#06b6d4"></button>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">视图布局</div>
+        <div class="segmented" id="viewSeg">
+          <button data-view-opt="editor">编辑</button>
+          <button data-view-opt="split">分栏</button>
+          <button data-view-opt="preview">预览</button>
+        </div>
+      </div>
+
+      <div class="panel-section grow" style="overflow-y:auto">
+        <div class="panel-title">编辑器设置</div>
+
+        <div class="field-row">
+          <span class="field-label">编辑器字体</span>
+          <div class="mini-segmented" id="fontSeg">
+            <button data-font="mono">等宽</button>
+            <button data-font="sans">系统</button>
+            <button data-font="serif">衬线</button>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <span class="field-label">Tab 宽度</span>
+          <div class="mini-segmented" id="tabSeg">
+            <button data-tab="2">2</button>
+            <button data-tab="4">4</button>
+            <button data-tab="8">8</button>
+          </div>
+        </div>
+
+        <div class="slider-row">
+          <div class="lbl"><span>字号</span><b id="fsVal">13.5 px</b></div>
+          <input type="range" id="fsRange" min="11" max="20" step="0.5" value="13.5">
+        </div>
+        <div class="slider-row">
+          <div class="lbl"><span>行高</span><b id="lhVal">1.75</b></div>
+          <input type="range" id="lhRange" min="1.3" max="2.4" step="0.05" value="1.75">
+        </div>
+        <div class="slider-row">
+          <div class="lbl"><span>预览宽度</span><b id="pwVal">100%</b></div>
+          <input type="range" id="pwRange" min="560" max="1400" step="20" value="1400">
+        </div>
+        <div class="slider-row">
+          <div class="lbl"><span>渲染节流</span><b id="rdVal">40 ms</b></div>
+          <input type="range" id="rdRange" min="0" max="200" step="10" value="40">
+        </div>
+
+        <div class="switch-row"><span>同步滚动</span><div class="switch on" id="swSync"></div></div>
+        <div class="switch-row"><span>自动换行</span><div class="switch on" id="swWrap"></div></div>
+        <div class="switch-row"><span>显示行号</span><div class="switch on" id="swGutter"></div></div>
+        <div class="switch-row"><span>拼写检查</span><div class="switch" id="swSpell"></div></div>
+        <div class="switch-row"><span>平滑滚动</span><div class="switch on" id="swSmooth"></div></div>
+
+        <button class="reset-btn" id="btnReset">恢复默认设置</button>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="statusbar">
+    <div class="status-item">行 <b id="sbLine">1</b>，列 <b id="sbCol">1</b></div>
+    <div class="status-sep"></div>
+    <div class="status-item">选择 <b id="sbSel">0</b> 字符</div>
+    <div class="status-sep"></div>
+    <div class="status-item">Markdown</div>
+    <div class="status-right">
+      <div class="status-item"><span class="saved-dot" id="saveDot"></span><span id="saveText">就绪</span></div>
+      <div class="status-sep"></div>
+      <div class="status-item" id="sbTheme">跟随系统</div>
+      <div class="status-sep"></div>
+      <div class="status-item">MarkForge · <b>MarkSkecher</b></div>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════ 命令面板 ═══════════ -->
+<div class="cmdk-overlay" id="cmdkOverlay">
+  <div class="cmdk" id="cmdk">
+    <div class="cmdk-input-wrap">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="9" r="5.5"/><path d="M13.2 13.2L17 17"/>
+      </svg>
+      <input type="text" id="cmdkInput" placeholder="输入命令或搜索…" spellcheck="false" autocomplete="off">
+      <kbd>Esc</kbd>
+    </div>
+    <div class="cmdk-list" id="cmdkList"></div>
+  </div>
+</div>
+
+<!-- ═══════════ 通用弹窗 ═══════════ -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">标题</h3>
+      <button class="modal-close" id="modalClose">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ═══════════ 关于页面 ═══════════ -->
+<div class="about-page" id="aboutPage" aria-hidden="true">
+  <button class="about-close" id="aboutClose" title="关闭 (Esc)">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor"
+         stroke-width="1.8" stroke-linecap="round">
+      <path d="M5 5l10 10M15 5L5 15"/>
+    </svg>
+  </button>
+
+  <div class="about-scroll">
+    <div class="about-inner">
+
+      <header class="about-hero">
+        <div class="about-glyph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 17V7l8 9 8-9v10"/>
+          </svg>
+        </div>
+        <h1>MarkForge</h1>
+        <p class="about-tag">专注书写的 Markdown 工作台</p>
+        <div class="about-meta">
+          <span class="pill">Version 1.1</span>
+          <span class="pill pill-accent">Author · MarkSkecher</span>
+        </div>
+      </header>
+
+      <p class="about-lede">
+        一个零依赖、单页运行的 Markdown 编辑器。界面借鉴专业软件的分区布局，
+        却始终保持轻盈、克制与舒适。所有数据只在本地处理，从不上传。
+      </p>
+
+      <section class="about-section">
+        <h2>核心能力</h2>
+        <div class="about-grid">
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h12M4 10h12M4 16h7"/>
+              </svg>
+            </div>
+            <h3>自研解析器</h3>
+            <p>支持标题、嵌套列表、表格、任务列表、引用、代码块、折叠块与高亮。</p>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 10h14M10 3v14"/>
+              </svg>
+            </div>
+            <h3>语法着色</h3>
+            <p>内置轻量高亮器，识别 JS / TS / Python / HTML / CSS 等十余种语言。</p>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="10" cy="10" r="7"/>
+                <path d="M10 6v4l3 2"/>
+              </svg>
+            </div>
+            <h3>流畅滚动</h3>
+            <p>缓存布局尺寸 + 帧级锁，编辑与预览同步滚动顺滑如丝，无抽搐。</p>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 4h10v12H5z"/><path d="M8 8h4M8 12h4"/>
+              </svg>
+            </div>
+            <h3>文件保存</h3>
+            <p>内容不再自动存本地；按 Ctrl+S 导出 .md 即视为保存，若尚有未保存修改，关闭页面时浏览器会提醒你。</p>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h12v12H4z"/><path d="M8 8l4 4M12 8l-4 4"/>
+              </svg>
+            </div>
+            <h3>命令面板</h3>
+            <p>Ctrl + P 唤出，模糊搜索全部操作，键盘流用户的福音。</p>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h14M3 10h14M3 14h9"/>
+              </svg>
+            </div>
+            <h3>导出</h3>
+            <p>一键保存 .md 源文件，或导出带完整样式的独立 HTML 页面。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="about-section">
+        <h2>技术栈</h2>
+        <ul class="about-list">
+          <li><span>渲染引擎</span><span>Vanilla JS · 无第三方依赖</span></li>
+          <li><span>高亮方案</span><span>按语言预编译正则 + LRU 缓存</span></li>
+          <li><span>滚动同步</span><span>缓存尺寸 + isSyncing 锁 + 双层 rAF</span></li>
+          <li><span>主题系统</span><span>CSS 变量 + prefers-color-scheme</span></li>
+        </ul>
+      </section>
+
+      <footer class="about-foot">
+        <p>MarkForge 由 <b>MarkSkecher</b> 设计与开发</p>
+        <p class="about-foot-dim">© 2026 · 保留所有权利</p>
+      </footer>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ Toast 容器 ═══════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<input type="file" id="fileInput" accept=".md,.markdown,.txt" hidden>
+
+<script src="app.js"></script>
+</body>
+</html>
