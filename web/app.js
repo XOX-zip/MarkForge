@@ -1541,6 +1541,11 @@ cmdkOverlay.addEventListener('click', e => {
 $('#btnSearch').addEventListener('click', openCmdk);
 $('#btnAbout').addEventListener('click', openAbout);
 
+$('#btnGithub').addEventListener('click', () => {
+  toast('提示：一般网络可能连不上 GitHub，建议开启加速器（如瓦特工具箱）', 'warn', 4500);
+  window.open('https://github.com/XOX-zip/MarkForge', '_blank', 'noopener');
+});
+
 /* ═══════════════════════════════════════════════════════════
    16.5 关于页面
    ═══════════════════════════════════════════════════════════ */
