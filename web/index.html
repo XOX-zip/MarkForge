@@ -57,6 +57,10 @@
       <div class="menu-item">
         <button class="menu-btn">编辑</button>
         <div class="dropdown">
+          <button class="dd-item" data-action="find"><span>查找</span><kbd>Ctrl F</kbd></button>
+          <button class="dd-item" data-action="replace"><span>查找与替换</span><kbd>Ctrl H</kbd></button>
+          <button class="dd-item" data-action="selectall-matches"><span>选中全部匹配项</span><kbd>Alt L</kbd></button>
+          <div class="dd-sep"></div>
           <button class="dd-item" data-action="undo"><span>撤销</span><kbd>Ctrl Z</kbd></button>
           <button class="dd-item" data-action="redo"><span>重做</span><kbd>Ctrl Y</kbd></button>
           <div class="dd-sep"></div>
@@ -65,6 +69,8 @@
           <div class="dd-sep"></div>
           <button class="dd-item" data-action="indent"><span>增加缩进</span><kbd>Tab</kbd></button>
           <button class="dd-item" data-action="outdent"><span>减少缩进</span><kbd>⇧ Tab</kbd></button>
+          <button class="dd-item" data-action="duplicate"><span>复制当前行</span><kbd>Ctrl ⇧ D</kbd></button>
+          <button class="dd-item" data-action="delete-line"><span>删除当前行</span><kbd>Ctrl ⇧ K</kbd></button>
         </div>
       </div>
       <div class="menu-item">
@@ -92,6 +98,14 @@
           <div class="dd-sep"></div>
           <button class="dd-item" data-action="toggle-left"><span>左侧面板</span><kbd>Ctrl B</kbd></button>
           <button class="dd-item" data-action="toggle-right"><span>右侧面板</span><kbd>Ctrl ⇧ B</kbd></button>
+          <div class="dd-sep"></div>
+          <button class="dd-item" data-action="focus-mode"><span>专注模式</span><kbd>Ctrl Alt F</kbd></button>
+          <button class="dd-item" data-action="typewriter"><span>打字机模式</span><kbd>Ctrl ⇧ T</kbd></button>
+          <button class="dd-item" data-action="quickopen"><span>快速跳转到标题</span><kbd>Ctrl G</kbd></button>
+          <div class="dd-sep"></div>
+          <button class="dd-item" data-action="zoom-in"><span>放大界面</span><kbd>Ctrl +</kbd></button>
+          <button class="dd-item" data-action="zoom-out"><span>缩小界面</span><kbd>Ctrl -</kbd></button>
+          <button class="dd-item" data-action="zoom-reset"><span>缩放重置 100%</span><kbd>Ctrl 0</kbd></button>
           <div class="dd-sep"></div>
           <button class="dd-item" data-action="fullscreen"><span>全屏</span><kbd>F11</kbd></button>
         </div>
@@ -203,6 +217,16 @@
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2.8 10h14.4"/><circle cx="5" cy="10" r=".8" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r=".8" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r=".8" fill="currentColor" stroke="none"/></svg>
     </button>
     <div class="tsep"></div>
+    <button class="tbtn" data-action="find" id="btnFind" title="查找与替换 (Ctrl+F)">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.6" cy="8.6" r="5.1"/><path d="M12.4 12.4L17 17"/></svg>
+    </button>
+    <button class="tbtn" id="btnTypewriter" title="打字机模式 (Ctrl+Shift+T)">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5h14M3 13.5h14"/><path d="M10 2.8v3.7M7.9 4.8L10 6.9l2.1-2.1"/></svg>
+    </button>
+    <button class="tbtn" id="btnFocus" title="专注模式 (Ctrl+Alt+F)">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.4 7V3.6A1.2 1.2 0 0 1 3.6 2.4H7M13 2.4h3.4a1.2 1.2 0 0 1 1.2 1.2V7M17.6 13v3.4a1.2 1.2 0 0 1-1.2 1.2H13M7 17.6H3.6a1.2 1.2 0 0 1-1.2-1.2V13"/><circle cx="10" cy="10" r="1.8"/></svg>
+    </button>
+    <div class="tsep"></div>
     <span class="tlabel" id="tbHint">就绪</span>
   </div>
 
@@ -242,6 +266,16 @@
         <div class="panel-title">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5h14M3 10h10M3 15h7"/></svg>
           文档大纲
+          <span class="panel-title-act">
+            <button class="mini-btn" id="outlineAll" title="展开全部标题">展开</button>
+            <button class="mini-btn" id="outlineCollapse" title="折叠全部标题">折叠</button>
+          </span>
+        </div>
+        <div class="outline-filter">
+          <input type="text" id="outlineFilter" placeholder="筛选标题…" spellcheck="false" autocomplete="off">
+          <button class="outline-clear" id="outlineClear" title="清除筛选">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6l8 8M14 6l-8 8"/></svg>
+          </button>
         </div>
         <div class="outline" id="outline"></div>
       </div>
@@ -285,7 +319,47 @@
           </div>
           <div class="editor-wrap">
             <div class="gutter" id="gutter"></div>
-            <textarea id="editor" spellcheck="false" placeholder="开始书写你的 Markdown…"></textarea>
+            <div class="editor-stage">
+              <div class="editor-overlay" id="editorOverlay" aria-hidden="true"></div>
+              <div class="focus-band" id="focusBand"></div>
+              <textarea id="editor" spellcheck="false" placeholder="开始书写你的 Markdown…"></textarea>
+            </div>
+
+            <div class="findbar" id="findbar">
+              <div class="find-rows">
+                <div class="find-row">
+                  <span class="find-icon">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.6" cy="8.6" r="5.1"/><path d="M12.4 12.4L17 17"/></svg>
+                  </span>
+                  <input type="text" id="findInput" placeholder="查找…" spellcheck="false" autocomplete="off">
+                  <span class="find-count" id="findCount">0/0</span>
+                  <button class="fb-btn" id="findPrev" title="上一个 (Shift+Enter)">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12.5l4-4 4 4"/></svg>
+                  </button>
+                  <button class="fb-btn" id="findNext" title="下一个 (Enter)">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7.5l4 4 4-4"/></svg>
+                  </button>
+                  <button class="fb-btn" id="findClose" title="关闭 (Esc)">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg>
+                  </button>
+                </div>
+                <div class="find-row">
+                  <span class="find-icon">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 7.2h7a2.6 2.6 0 0 1 0 5.2M3.4 7.2V4.4M3.4 7.2v5.6M3.4 12.8h4"/><path d="M12.6 6.6h4M14.6 6.6v7.6M12.8 14.2h3.6"/></svg>
+                  </span>
+                  <input type="text" id="replaceInput" placeholder="替换为…（支持 $1）" spellcheck="false" autocomplete="off">
+                  <button class="fb-btn wide" id="replaceOne" title="替换当前">替换</button>
+                  <button class="fb-btn wide" id="replaceAll" title="全部替换">全部</button>
+                </div>
+              </div>
+              <div class="find-opts">
+                <button data-fopt="case" title="区分大小写">Aa</button>
+                <button data-fopt="word" title="全字匹配">全词</button>
+                <button data-fopt="regex" title="正则表达式">.*</button>
+                <button class="fo-sep" disabled aria-hidden="true"></button>
+                <button data-fopt="selectAll" title="选中全部匹配项 (Alt+L)">全选</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -317,21 +391,51 @@
       </div>
 
       <div class="panel-section">
-        <div class="panel-title">外观主题</div>
-        <div class="segmented" id="themeSeg">
-          <button data-theme-opt="light">浅色</button>
-          <button data-theme-opt="dark">深色</button>
-          <button data-theme-opt="system">系统</button>
+        <button class="panel-head open" data-panel="appearance" title="折叠 / 展开">
+          <svg class="ph-chev" viewBox="0 0 12 12"><path d="M4.5 2.6L8 6l-3.5 3.4"/></svg>
+          外观主题
+        </button>
+        <div class="panel-body open">
+         <div>
+          <div class="segmented" id="themeSeg">
+            <button data-theme-opt="light">浅色</button>
+            <button data-theme-opt="dark">深色</button>
+            <button data-theme-opt="system">系统</button>
+          </div>
+          <div class="panel-title" style="margin-top:14px">强调色</div>
+          <div class="accent-swatches" id="accentSwatches">
+            <button class="swatch" data-accent="#4b7bff" style="--sw:#4b7bff"></button>
+            <button class="swatch" data-accent="#8b5cf6" style="--sw:#8b5cf6"></button>
+            <button class="swatch" data-accent="#ec4899" style="--sw:#ec4899"></button>
+            <button class="swatch" data-accent="#f97316" style="--sw:#f97316"></button>
+            <button class="swatch" data-accent="#10b981" style="--sw:#10b981"></button>
+            <button class="swatch" data-accent="#06b6d4" style="--sw:#06b6d4"></button>
+          </div>
+          <div class="panel-title" style="margin-top:16px">阅读与专注</div>
+          <div class="switch-row"><span>专注模式 · 淡出焦点行</span><div class="switch" id="swFocusMode"></div></div>
+          <div class="switch-row"><span>打字机模式 · 光标居中</span><div class="switch" id="swTypewriter"></div></div>
+         </div>
         </div>
-        <div class="panel-title" style="margin-top:14px">强调色</div>
-        <div class="accent-swatches" id="accentSwatches">
-          <button class="swatch" data-accent="#4b7bff" style="--sw:#4b7bff"></button>
-          <button class="swatch" data-accent="#8b5cf6" style="--sw:#8b5cf6"></button>
-          <button class="swatch" data-accent="#ec4899" style="--sw:#ec4899"></button>
-          <button class="swatch" data-accent="#f97316" style="--sw:#f97316"></button>
-          <button class="swatch" data-accent="#10b981" style="--sw:#10b981"></button>
-          <button class="swatch" data-accent="#06b6d4" style="--sw:#06b6d4"></button>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">写作目标</div>
+        <div class="goal-fields">
+          <label class="goal-field">
+            <span>目标字数</span>
+            <input type="number" id="goalWords" min="0" step="50" placeholder="0" value="0">
+          </label>
+          <label class="goal-field">
+            <span>目标字符</span>
+            <input type="number" id="goalChars" min="0" step="100" placeholder="0" value="0">
+          </label>
         </div>
+        <div class="goal-bar" id="goalBarWords" title="字数进度"><i></i></div>
+        <div class="goal-bar" id="goalBarChars" title="字符进度"><i></i></div>
+        <div class="stat-row"><span class="k" id="goalWordsText">今日字数 · 未设目标</span><span class="v" id="goalWordsPct">—</span></div>
+        <div class="stat-row"><span class="k" id="goalCharsText">今日字符 · 未设目标</span><span class="v" id="goalCharsPct">—</span></div>
+        <div class="switch-row"><span>状态栏显示目标进度</span><div class="switch" id="swGoal"></div></div>
+        <button class="reset-btn" id="btnGoalClear">清除目标</button>
       </div>
 
       <div class="panel-section">
@@ -361,6 +465,22 @@
             <button data-tab="2">2</button>
             <button data-tab="4">4</button>
             <button data-tab="8">8</button>
+          </div>
+        </div>
+
+        <div class="zoom-row">
+          <span>界面缩放</span>
+          <div class="zoom-ctrl">
+            <button id="zoomOut" title="缩小界面 (Ctrl+-)">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 10h10"/></svg>
+            </button>
+            <b id="zoomVal">100%</b>
+            <button id="zoomIn" title="放大界面 (Ctrl+=)">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M10 5v10M5 10h10"/></svg>
+            </button>
+            <button id="zoomReset" title="重置为 100%">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 8.5a6 6 0 1 1 .9 4.6"/><path d="M4.2 4.6v4h4"/></svg>
+            </button>
           </div>
         </div>
 
@@ -398,6 +518,8 @@
     <div class="status-item">选择 <b id="sbSel">0</b> 字符</div>
     <div class="status-sep"></div>
     <div class="status-item">Markdown</div>
+    <div class="status-sep" id="sbGoalSep" hidden></div>
+    <button class="status-goal" id="sbGoal" title="点击设置写作目标" hidden></button>
     <div class="status-right">
       <div class="status-item"><span class="saved-dot" id="saveDot"></span><span id="saveText">就绪</span></div>
       <div class="status-sep"></div>
@@ -415,10 +537,16 @@
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="9" cy="9" r="5.5"/><path d="M13.2 13.2L17 17"/>
       </svg>
-      <input type="text" id="cmdkInput" placeholder="输入命令或搜索…" spellcheck="false" autocomplete="off">
+      <input type="text" id="cmdkInput" placeholder="输入命令或搜索…" spellcheck="false" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="cmdkList">
       <kbd>Esc</kbd>
     </div>
-    <div class="cmdk-list" id="cmdkList"></div>
+    <div class="cmdk-list" id="cmdkList" role="listbox" aria-label="命令列表"></div>
+    <div class="cmdk-hint">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>Enter</kbd> 执行</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+      <span style="margin-left:auto"><kbd>Ctrl</kbd>+<kbd>G</kbd> 快速跳转</span>
+    </div>
   </div>
 </div>
 
@@ -455,7 +583,7 @@
         <h1>MarkForge</h1>
         <p class="about-tag">专注书写的 Markdown 工作台</p>
         <div class="about-meta">
-          <span class="pill">Version 1.1</span>
+          <span class="pill">Version 1.2</span>
           <span class="pill pill-accent">Author · MarkSkecher</span>
         </div>
       </header>
@@ -523,6 +651,24 @@
             <h3>导出</h3>
             <p>一键保存 .md 源文件，或导出带完整样式的独立 HTML 页面。</p>
           </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8.6" cy="8.6" r="5.1"/><path d="M12.4 12.4L17 17"/>
+              </svg>
+            </div>
+            <h3>查找与替换</h3>
+            <p>Ctrl + F 唤出，源码内高亮全部匹配；支持区分大小写、全字匹配、正则表达式与 $1 捕获组替换。</p>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 3v14M6.5 5.5L10 3l3.5 2.5M6.5 14.5L10 17l3.5-2.5"/>
+              </svg>
+            </div>
+            <h3>专注书写</h3>
+            <p>专注模式淡出焦点行、打字机模式让光标常驻中线，配合每日写作目标，把注意力留给文字。</p>
+          </div>
         </div>
       </section>
 
@@ -533,6 +679,8 @@
           <li><span>高亮方案</span><span>按语言预编译正则 + LRU 缓存</span></li>
           <li><span>滚动同步</span><span>缓存尺寸 + isSyncing 锁 + 双层 rAF</span></li>
           <li><span>主题系统</span><span>CSS 变量 + prefers-color-scheme</span></li>
+          <li><span>查找高亮</span><span>镜像层同字体同步滚动 · 正则索引</span></li>
+          <li><span>专注书写</span><span>行盒投影遮罩 + 光标行估算居中</span></li>
         </ul>
       </section>
 
